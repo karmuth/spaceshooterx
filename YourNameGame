@@ -1,0 +1,109 @@
+package game;
+
+import java.awt.*;
+
+class YourGameName extends Game {
+    private Ship ship;
+    private Asteroid asteroid;
+    private Bullet bullet;
+    private int score;
+
+    public YourGameName() {
+        super("YourGameName!", 800, 600);
+        this.setFocusable(true);
+
+        Point[] shipShape = {
+            new Point(20, 10),
+            new Point(0, 0),
+            new Point(0, 20)
+        };
+
+        Point[] asteroidShape = {
+            new Point(0, 10),
+            new Point(10, 0),
+            new Point(25, 5),
+            new Point(30, 20),
+            new Point(20, 30),
+            new Point(5, 25)
+        };
+
+        ship = new Ship(shipShape, new Point(400, 300), 0);
+        asteroid = new Asteroid(asteroidShape, new Point(100, 100), 45);
+        bullet = null;
+        score = 0;
+
+        this.addKeyListener(ship);
+        this.requestFocus();
+    }
+
+    public void paint(Graphics brush) {
+        brush.setColor(Color.black);
+        brush.fillRect(0, 0, width, height);
+
+        brush.setColor(Color.white);
+        brush.drawString("Score: " + score, 10, 40);
+
+        ship.move();
+        ship.wrap(width, height);
+
+        asteroid.move();
+        asteroid.wrap(width, height);
+
+        if (ship.consumeShot() && (bullet == null || !bullet.isActive())) {
+            Point[] bulletShape = {
+                new Point(0, 0),
+                new Point(4, 0),
+                new Point(4, 4),
+                new Point(0, 4)
+            };
+
+            bullet = new Bullet(
+                bulletShape,
+                ship.getBulletStart(),
+                ship.rotation
+            );
+        }
+
+        if (bullet != null && bullet.isActive()) {
+            bullet.move();
+            bullet.wrap(width, height);
+
+            if (bullet.collides(asteroid)) {
+                bullet.deactivate();
+                score++;
+
+                Point[] asteroidShape = {
+                    new Point(0, 10),
+                    new Point(10, 0),
+                    new Point(25, 5),
+                    new Point(30, 20),
+                    new Point(20, 30),
+                    new Point(5, 25)
+                };
+
+                asteroid = new Asteroid(
+                    asteroidShape,
+                    new Point(100 + Math.random() * 600, 100 + Math.random() * 400),
+                    Math.random() * 360
+                );
+            }
+        }
+
+        ship.paint(brush);
+        asteroid.paint(brush);
+
+        if (bullet != null && bullet.isActive()) {
+            bullet.paint(brush);
+        }
+
+        if (ship.collides(asteroid)) {
+            brush.setColor(Color.red);
+            brush.drawString("Collision!", 350, 50);
+        }
+    }
+
+    public static void main(String[] args) {
+        YourGameName a = new YourGameName();
+        a.repaint();
+    }
+}
