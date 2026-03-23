@@ -1,0 +1,45 @@
+package game;
+
+import java.awt.*;
+
+class Asteroid extends Polygon {
+
+    public Asteroid(Point[] shape, Point position, double rotation) {
+        super(shape, position, rotation);
+    }
+
+    public void move() {
+        double speed = 2.0;
+        position.x += speed * Math.cos(Math.toRadians(rotation));
+        position.y += speed * Math.sin(Math.toRadians(rotation));
+    }
+
+    public void wrap(int width, int height) {
+        if (position.x < 0) {
+            position.x = width;
+        }
+        if (position.x > width) {
+            position.x = 0;
+        }
+        if (position.y < 0) {
+            position.y = height;
+        }
+        if (position.y > height) {
+            position.y = 0;
+        }
+    }
+
+    public void paint(Graphics brush) {
+        Point[] points = getPoints();
+        int[] xPoints = new int[points.length];
+        int[] yPoints = new int[points.length];
+
+        for (int i = 0; i < points.length; i++) {
+            xPoints[i] = (int) points[i].x;
+            yPoints[i] = (int) points[i].y;
+        }
+
+        brush.setColor(Color.white);
+        brush.drawPolygon(xPoints, yPoints, points.length);
+    }
+}
