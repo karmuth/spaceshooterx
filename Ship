@@ -1,0 +1,112 @@
+package game;
+
+import java.awt.*;
+import java.awt.event.*;
+
+class Ship extends Polygon implements KeyListener {
+    private boolean forwardPressed;
+    private boolean leftPressed;
+    private boolean rightPressed;
+    private boolean shootPressed;
+
+    public Ship(Point[] shape, Point position, double rotation) {
+        super(shape, position, rotation);
+        forwardPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+        shootPressed = false;
+    }
+
+    public void move() {
+        double stepSize = 5.0;
+
+        if (leftPressed) {
+            rotate(-8);
+        }
+
+        if (rightPressed) {
+            rotate(8);
+        }
+
+        if (forwardPressed) {
+            position.x += stepSize * Math.cos(Math.toRadians(rotation));
+            position.y += stepSize * Math.sin(Math.toRadians(rotation));
+        }
+    }
+
+    public void wrap(int width, int height) {
+        if (position.x < 0) {
+            position.x = width;
+        }
+        if (position.x > width) {
+            position.x = 0;
+        }
+        if (position.y < 0) {
+            position.y = height;
+        }
+        if (position.y > height) {
+            position.y = 0;
+        }
+    }
+
+    public void paint(Graphics brush) {
+        Point[] points = getPoints();
+        int[] xPoints = new int[points.length];
+        int[] yPoints = new int[points.length];
+
+        for (int i = 0; i < points.length; i++) {
+            xPoints[i] = (int) points[i].x;
+            yPoints[i] = (int) points[i].y;
+        }
+
+        brush.setColor(Color.white);
+        brush.drawPolygon(xPoints, yPoints, points.length);
+    }
+
+    public boolean consumeShot() {
+        if (shootPressed) {
+            shootPressed = false;
+            return true;
+        }
+        return false;
+    }
+
+    public Point getBulletStart() {
+        return new Point(position.x + 10, position.y + 10);
+    }
+
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            forwardPressed = true;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            leftPressed = true;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            rightPressed = true;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            shootPressed = true;
+        }
+    }
+
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            forwardPressed = false;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            leftPressed = false;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            rightPressed = false;
+        }
+    }
+
+    public void keyTyped(KeyEvent e) {
+    }
+}
