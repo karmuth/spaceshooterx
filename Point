@@ -1,24 +1,66 @@
 package game;
 
-/*
-CLASS: Point
-DESCRIPTION: Ah, if only real-life classes were this straight-forward. We'll
-             use 'Point' throughout the program to store and access 
-             coordinates.
-*/
-
+/**
+ * Represents a point using x and y coordinates.
+ * This class is used to store positions and geometric data for game objects.
+ */
 public class Point implements Cloneable {
-  public double x,y;
-  public Point(double inX, double inY) { x = inX; y = inY; }
-  
+    public double x;
+    public double y;
 
-  public double getX(){ return x;}
-  public double getY(){ return y;}
-  public void setX(double x){ this.x = x;}
-  public void setY(double y){ this.y = y;}
-  
-  
-  public Point clone() {
-	  return new Point(x, y);
-  }
+    /**
+     * Constructs a point with the specified coordinates.
+     *
+     * @param inX the x-coordinate
+     * @param inY the y-coordinate
+     */
+    public Point(double inX, double inY) {
+        x = inX;
+        y = inY;
+    }
+
+    /**
+     * Returns the x-coordinate of the point.
+     *
+     * @return the x-coordinate
+     */
+    public double getX() {
+        return x;
+    }
+
+    /**
+     * Returns the y-coordinate of the point.
+     *
+     * @return the y-coordinate
+     */
+    public double getY() {
+        return y;
+    }
+
+    /**
+     * Sets the x-coordinate of the point.
+     *
+     * @param x the new x-coordinate
+     */
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    /**
+     * Sets the y-coordinate of the point.
+     *
+     * @param y the new y-coordinate
+     */
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    /**
+     * Creates and returns a copy of the point.
+     *
+     * @return a new Point with the same coordinates
+     */
+    public Point clone() {
+        return new Point(x, y);
+    }
 }
