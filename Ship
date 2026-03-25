@@ -1,69 +1,96 @@
 package game;
 
 import java.awt.*;
-import java.awt.event.*;
 
-class Ship extends Polygon implements KeyListener {
-    private boolean forwardPressed;
-    private boolean leftPressed;
-    private boolean rightPressed;
+/**
+ * This class represents the player-controlled ship.
+ * The ship can move horizontally, rotate, and fire bullets.
+ */
+class Ship extends Polygon implements Movable {
+    private boolean moveLeftPressed;
+    private boolean moveRightPressed;
+    private boolean rotateLeftPressed;
+    private boolean rotateRightPressed;
     private boolean shootPressed;
 
+    /**
+     * This constructor initializes a ship with the specified shape, position, and rotation.
+     *
+     * @param shape the points defining the ship's shape
+     * @param position the starting position of the ship
+     * @param rotation the initial rotation in degrees
+     */
     public Ship(Point[] shape, Point position, double rotation) {
         super(shape, position, rotation);
-        forwardPressed = false;
-        leftPressed = false;
-        rightPressed = false;
+        moveLeftPressed = false;
+        moveRightPressed = false;
+        rotateLeftPressed = false;
+        rotateRightPressed = false;
         shootPressed = false;
     }
 
+    /**
+     * This method moves or rotates the ship from its current state.
+     */
     public void move() {
-        double stepSize = 5.0;
+        double step = 6.0;
 
-        if (leftPressed) {
+        if (moveLeftPressed) {
+            position.x -= step;
+        }
+
+        if (moveRightPressed) {
+            position.x += step;
+        }
+
+        if (rotateLeftPressed) {
             rotate(-8);
         }
 
-        if (rightPressed) {
+        if (rotateRightPressed) {
             rotate(8);
         }
-
-        if (forwardPressed) {
-            position.x += stepSize * Math.cos(Math.toRadians(rotation));
-            position.y += stepSize * Math.sin(Math.toRadians(rotation));
-        }
     }
 
-    public void wrap(int width, int height) {
+    /**
+     * This method keeps the ship positioned at the bottom of the screen.
+     *
+     * @param height the height of the game window
+     */
+    public void keepAtBottom(int height) {
+        position.y = height - 80;
+    }
+
+    /**
+     * This method restricts the ship's horizontal position to stay within the frame.
+     *
+     * @param width the width of the game window
+     */
+    public void keepInBounds(int width) {
         if (position.x < 0) {
-            position.x = width;
-        }
-        if (position.x > width) {
             position.x = 0;
         }
-        if (position.y < 0) {
-            position.y = height;
-        }
-        if (position.y > height) {
-            position.y = 0;
+        if (position.x > width - 30) {
+            position.x = width - 30;
         }
     }
 
-    public void paint(Graphics brush) {
+    /**
+     * Returns the point where a newly fired bullet should begin.
+     *
+     * @return the starting point for a bullet
+     */
+    public Point getBulletStart() {
         Point[] points = getPoints();
-        int[] xPoints = new int[points.length];
-        int[] yPoints = new int[points.length];
-
-        for (int i = 0; i < points.length; i++) {
-            xPoints[i] = (int) points[i].x;
-            yPoints[i] = (int) points[i].y;
-        }
-
-        brush.setColor(Color.white);
-        brush.drawPolygon(xPoints, yPoints, points.length);
+        return new Point(points[0].x, points[0].y);
     }
 
-    public boolean consumeShot() {
+    /**
+     * This method returns whether the shot key (space) was pressed, then clears the request.
+     *
+     * @return true if the shot key was pressed, false otherwise
+     */
+    public boolean fire() {
         if (shootPressed) {
             shootPressed = false;
             return true;
@@ -71,42 +98,65 @@ class Ship extends Polygon implements KeyListener {
         return false;
     }
 
-    public Point getBulletStart() {
-        return new Point(position.x + 10, position.y + 10);
+    /**
+     * This method determines whether the ship should move left.
+     *
+     * @param value true to move left, false otherwise
+     */
+    public void setMoveLeftPressed(boolean value) {
+        moveLeftPressed = value;
     }
 
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
-            forwardPressed = true;
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            leftPressed = true;
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            rightPressed = true;
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            shootPressed = true;
-        }
+    /**
+     * This method determines whether the ship should move right.
+     *
+     * @param value true to move right, false otherwise
+     */
+    public void setMoveRightPressed(boolean value) {
+        moveRightPressed = value;
     }
 
-    public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
-            forwardPressed = false;
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            leftPressed = false;
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            rightPressed = false;
-        }
+    /**
+     * This method determines whether the ship should rotate left.
+     *
+     * @param value true to rotate left, false otherwise
+     */
+    public void setRotateLeftPressed(boolean value) {
+        rotateLeftPressed = value;
     }
 
-    public void keyTyped(KeyEvent e) {
+    /**
+     * This method determines whether the ship should rotate right.
+     *
+     * @param value true to rotate right, false otherwise
+     */
+    public void setRotateRightPressed(boolean value) {
+        rotateRightPressed = value;
+    }
+
+    /**
+     * This method records request for the ship to fire a bullet.
+     */
+    public void requestShot() {
+        shootPressed = true;
+    }
+
+    /**
+     * This method draws the ship based on its current inputs.
+     *
+     * @param brush the Graphics object used for drawing
+     */
+    public void paint(Graphics brush) {
+        Point[] points = getPoints();
+        int[] x = new int[points.length];
+        int[] y = new int[points.length];
+
+        for (int i = 0; i < points.length; i++) {
+            x[i] = (int) points[i].x;
+            y[i] = (int) points[i].y;
+        }
+
+        brush.setColor(Color.white);
+        brush.drawPolygon(x, y, points.length);
     }
 }
