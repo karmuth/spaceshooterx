@@ -1,0 +1,299 @@
+package game;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+/**
+ * This class is considered the main method of the project.
+ * It manages ship, asteroid, bullet, score display,
+ * level progression, and the game-over conditions.
+ */
+class SpaceShooter extends Game {
+	private boolean gameOver;
+    private int level;
+    private int nextLevelScore;
+	private Ship ship;
+    private Asteroid asteroid;
+    private ArrayList<Bullet> bullets;
+    private ScoreBoard scoreBoard;
+    private Ground ground;
+
+    /**
+     * This constructor initializes the game.
+     * The ship, asteroid, scoreboard, ground, and keyboard controls
+     * are created by the constructor.
+     */
+    public SpaceShooter() {
+        super("Space Shooter!", 800, 600);
+        this.setFocusable(true);
+
+        Point[] shipShape = {
+            new Point(20, 10),
+            new Point(0, 0),
+            new Point(0, 20)
+        };
+
+        ship = new Ship(shipShape, new Point(400, 520), 270);
+        bullets = new ArrayList<Bullet>();
+        scoreBoard = new ScoreBoard();
+        ground = new Ground(height - 40);
+        gameOver = false;
+        level = 1;
+        nextLevelScore = 4;
+        asteroid = update();
+
+        this.addKeyListener(new KeyAdapter() {
+
+            /**
+             * This method uses the methods in ship.java to initiate 
+             * key press events for movement, rotation, and shooting.
+             *
+             * @param e the key event
+             */
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                    ship.setMoveLeftPressed(true);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    ship.setMoveRightPressed(true);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_A) {
+                    ship.setRotateLeftPressed(true);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_D) {
+                    ship.setRotateRightPressed(true);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    ship.requestShot();
+                }
+            }
+
+            /**
+             * This method tells the game to stop 
+             * the movement of the ship when the key is released.
+             *
+             * @param e the key event
+             */
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                    ship.setMoveLeftPressed(false);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    ship.setMoveRightPressed(false);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_A) {
+                    ship.setRotateLeftPressed(false);
+                }
+                if (e.getKeyCode() == KeyEvent.VK_D) {
+                    ship.setRotateRightPressed(false);
+                }
+            }
+        });
+
+        this.requestFocus();
+    }
+
+    /**
+     * This method updates the frame of the canvas.
+     * It handles rendering, movement, collisions,
+     * shooting, level progression, and game-over logic.
+     *
+     * @param brush the Graphics object used for drawing
+     */
+    public void paint(Graphics brush) {
+        if (ground == null || scoreBoard == null || ship == null || asteroid == null || bullets == null) {
+            return;
+        }
+
+        brush.setColor(Color.black);
+        brush.fillRect(0, 0, width, height);
+        ground.draw(brush);
+        scoreBoard.draw(brush);
+
+        if (gameOver) {
+            brush.setColor(Color.red);
+            brush.drawString("GAME OVER", 340, 280);
+            brush.drawString("Final Score: " + scoreBoard.getScore(), 335, 305);
+            brush.drawString("Final Level: " + level, 338, 330);
+            return;
+        }
+
+        ship.move();
+        ship.keepAtBottom(height);
+        ship.keepInBounds(width);
+        
+        asteroid.move();
+        if (asteroid.hitGround(ground.getY())) {
+            gameOver = true;
+        }
+
+        if (ship.fire()) {
+            Point[] bulletShape = {
+                new Point(0, 0),
+                new Point(4, 0),
+                new Point(4, 4),
+                new Point(0, 4)
+            };
+            Bullet d = new Bullet(bulletShape, ship.getBulletStart(), ship.rotation);
+            bullets.add(d);
+        }
+
+        for (Bullet a: bullets) {
+            a.move();
+
+            if (a.isActive() && a.collides(asteroid)) {
+                a.deactivate();
+                asteroid.takeHit();
+
+                if (asteroid.isDestroyed()) {
+                    scoreBoard.addPoint();
+
+                    if (scoreBoard.getScore() >= nextLevelScore) {
+                        level++;
+                        nextLevelScore += 5;
+                    }
+
+                    asteroid = update();
+                }
+            }
+        }
+
+        bullets.removeIf(b -> !b.isActive());
+
+        if (ship.collides(asteroid)) {
+            gameOver = true;
+        }
+
+        ship.paint(brush);
+        asteroid.paint(brush);
+
+        for (Bullet b: bullets) {
+            b.paint(brush);
+        }
+    }
+
+    /**
+     * Creates a new asteroid based on the current level.
+     * As level increases, the asteroid gets larger, faster, and takes more bullets to kill.
+     *
+     * @return a new asteroid for the current level
+     */
+    private Asteroid update() {
+        double scale = 1.0 + (level - 1) * 0.15;
+        double speed = 2.0 + (level - 1) * 0.4;
+        int hitsNeeded = 1 + (level - 1);
+        
+        Point[] size = scaledAsteroidShape(scale);
+        double x = 50 + Math.random() * (width - 100);
+        double y = -40;
+        double rotation = Math.random() * 360;
+
+        return new Asteroid(size, new Point(x, y), rotation, speed, hitsNeeded);
+    }
+
+    /**
+     * Returns a scaled asteroid shape based on the specified factor.
+     *
+     * @param scale the size multiplier applied to the base asteroid shape
+     * @return an array of points representing the scaled shape
+     */
+    private Point[] scaledAsteroidShape(double scale) {
+        return new Point[] {
+            new Point(0 * scale, 10 * scale),
+            new Point(10 * scale, 0 * scale),
+            new Point(25 * scale, 5 * scale),
+            new Point(30 * scale, 20 * scale),
+            new Point(20 * scale, 30 * scale),
+            new Point(5 * scale, 25 * scale)
+        };
+    }
+
+    /**
+     * Starts the game.
+     *
+     * @param args command-line arguments
+     */
+    public static void main(String[] args) {
+        SpaceShooter game = new SpaceShooter();
+        game.repaint();
+    }
+
+    /**
+     * This subclass displays the current score, level, asteroid health, and controls.
+     */
+    private class ScoreBoard {
+        private int score;
+
+        /**
+         * Scoreboard constructor that initializes a starting score of zero.
+         */
+        public ScoreBoard() {
+            score = 0;
+        }
+
+        /**
+         * Increases the score by one point.
+         */
+        public void addPoint() {
+            score++;
+        }
+
+        /**
+         * Returns the current score.
+         *
+         * @return the current score
+         */
+        public int getScore() {
+            return score;
+        }
+
+        /**
+         * This function displays the scoreboard and control instructions.
+         *
+         * @param brush the Graphics object used for drawing
+         */
+        public void draw(Graphics brush) {
+            brush.setColor(Color.white);
+            brush.drawString("Score: " + score, 10, 20);
+            brush.drawString("Level: " + level, 10, 40);
+            brush.drawString("Asteroid HP: " + asteroid.getHitsRemaining(), 10, 60);
+            brush.drawString("Move: Left/Right   Rotate: A/D   Shoot: Space", 10, 80);
+        }
+    }
+
+    /**
+     * This subclass creates the ground line in the game.
+     */
+    private class Ground {
+        private int y;
+
+        /**
+         * This constructor initializes the ground line at the y-coordinate parameter.
+         *
+         * @param y the y-coordinate of the ground
+         */
+        public Ground(int y) {
+            this.y = y;
+        }
+
+        /**
+         * This method returns the y-coordinate of the ground line.
+         *
+         * @return the y-coordinate of the ground
+         */
+        public int getY() {
+            return y;
+        }
+
+        /**
+         * This method draws the ground line.
+         * 
+         * @param brush the Graphics object used for drawing
+         */
+        public void draw(Graphics brush) {
+            brush.setColor(Color.green);
+            brush.drawLine(0, y, width, y);
+        }
+    }
+}
