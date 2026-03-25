@@ -1,0 +1,14 @@
+package game;
+
+/**
+ * Represents an object that can change its position over time.
+ * Implementing classes define how the object moves each frame.
+ */
+interface Movable {
+
+    /**
+     * Updates the position of the object.
+     * This method is typically called once per frame.
+     */
+    void move();
+}
